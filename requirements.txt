@@ -1,0 +1,7 @@
+aiogram==3.3.0
+python-dotenv==1.0.0
+pytz
+huggingface-hub
+ffmpeg-python
+requests
+APScheduler==3.10.4
