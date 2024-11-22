@@ -2,6 +2,7 @@
 venv/
 env/
 .env
+.venv/
 
 # Python cache files
 __pycache__/
@@ -10,6 +11,7 @@ __pycache__/
 
 # Database
 *.db
+reminders.db
 
 # Logs
 *.log
@@ -21,3 +23,6 @@ __pycache__/
 # IDE settings
 .vscode/
 .idea/
+
+# System files
+.DS_Store
