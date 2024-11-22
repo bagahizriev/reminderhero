@@ -1,7 +1,23 @@
- .venv/
- venv/
- __pycache__/
- .env
- env/
- env
- reminder.db
+# Python virtual environment
+venv/
+env/
+.env
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database
+*.db
+
+# Logs
+*.log
+
+# Audio files
+*.ogg
+*.wav
+
+# IDE settings
+.vscode/
+.idea/
