@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 import pytz
 import requests
-from config import MISTRAL_API_KEY
+from config import MISTRAL_API_KEY, INSTANCE_PATH
 import logging
 import os
 
@@ -14,7 +14,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('logs/mistral.log'),
+        logging.FileHandler(os.path.join(INSTANCE_PATH, 'logs/mistral.log')),
         logging.StreamHandler()
     ]
 )
