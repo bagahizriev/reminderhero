@@ -8,7 +8,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from config import TELEGRAM_TOKEN
 from database import Database
 from speech_recognition import SpeechRecognizer
-from event_extractor import EventExtractor
+from event_extractor_mistral import EventExtractorMistral
 from notification_manager import NotificationManager
 import pytz
 from datetime import datetime
@@ -27,7 +27,7 @@ class ReminderBot:
         self.dp = Dispatcher(storage=MemoryStorage())
         self.db = Database('reminders.db')
         self.speech_recognizer = SpeechRecognizer()
-        self.event_extractor = EventExtractor()
+        self.event_extractor = EventExtractorMistral()
         self.notification_manager = NotificationManager(TELEGRAM_TOKEN, self.db)
         self.register_handlers()
 
@@ -189,7 +189,7 @@ class ReminderBot:
         user_timezone = self.db.get_user_timezone(user_id)
         text = "📋 Ваши напоминания:\n\n"
         
-        # Создаем кноп��и для каждого ID напоминания
+        # Создаем кнопи для каждого ID напоминания
         buttons = []
         for unique_key, reminder_data in reminders.items():
             formatted_datetime = self.format_datetime(
@@ -412,7 +412,7 @@ class ReminderBot:
             timezone_name = f"Etc/GMT{'-' if offset > 0 else '+'}{abs(offset)}"
             self.db.set_user_timezone(message.from_user.id, timezone_name)
             
-            # Отправляем новое сообщение с обновленными настройками
+            # Отправляем новое сообщение с обновленными настройка��и
             text = f"⚙️ Настройки\n\n🌍 Часовой пояс: {timezone_str}"
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
                 [types.InlineKeyboardButton(
