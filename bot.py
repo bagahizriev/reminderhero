@@ -5,7 +5,7 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
-from config import TELEGRAM_TOKEN
+from config import TELEGRAM_TOKEN, DATABASE_PATH, INSTANCE_PATH
 from database import Database
 from speech_recognition import SpeechRecognizer
 from event_extractor_mistral import EventExtractorMistral
@@ -25,15 +25,15 @@ class ReminderBot:
     def __init__(self):
         self.bot = Bot(token=TELEGRAM_TOKEN)
         self.dp = Dispatcher(storage=MemoryStorage())
-        self.db = Database('reminders.db')
+        self.db = Database(DATABASE_PATH)
         self.speech_recognizer = SpeechRecognizer()
         self.event_extractor = EventExtractorMistral()
         self.notification_manager = NotificationManager(TELEGRAM_TOKEN, self.db)
-        self.register_handlers()
         
-        # Создаем директорию для голосовых сообщений, если её нет
-        self.voice_dir = "voice_messages"
+        self.voice_dir = os.path.join(INSTANCE_PATH, 'voice_messages')
         os.makedirs(self.voice_dir, exist_ok=True)
+        
+        self.register_handlers()
 
     def register_handlers(self):
         # Бзовые команды
@@ -91,7 +91,7 @@ class ReminderBot:
             and message.text
         )
         
-        # Добавляем обработчики для удаления напоминаний
+        # Добавляем обработчики для удаения напоминаний
         self.dp.callback_query.register(
             self.show_delete_buttons,
             F.data == "show_delete_buttons"
@@ -219,7 +219,7 @@ class ReminderBot:
                 callback_data=f"delete_{reminder_data['display_id']}"
             )])
         
-        # Добавляем кнопку "Сохранит��" внизу
+        # Добавляем кнопку "Сохранит" внизу
         buttons.append([types.InlineKeyboardButton(
             text="✅ Сохранить",
             callback_data="save_deletions"
@@ -340,10 +340,11 @@ class ReminderBot:
         user_timezone = self.db.get_user_timezone(message.from_user.id)
         # Конвертируем Etc/GMT+3 в GMT-3
         display_timezone = user_timezone.replace('Etc/', '')
-        if display_timezone.startswith('GMT+'):
-            display_timezone = 'GMT' + display_timezone[4:].replace('+', '-')
-        elif display_timezone.startswith('GMT-'):
-            display_timezone = 'GMT' + display_timezone[4:].replace('-', '+')
+        if display_timezone.startswith('GMT'):
+            # Добавляем '+' если его нет и это положительное смещение
+            offset = display_timezone[3:]  # получаем часть после 'GMT'
+            if offset and not offset.startswith('+') and not offset.startswith('-'):
+                display_timezone = f"GMT+{offset}"
         
         text = f"⚙️ Настройки\n\n🌍 Часовой пояс: {display_timezone}"
         
@@ -439,10 +440,11 @@ class ReminderBot:
         user_timezone = self.db.get_user_timezone(callback.from_user.id)
         # Конвертируем Etc/GMT+3 в GMT-3
         display_timezone = user_timezone.replace('Etc/', '')
-        if display_timezone.startswith('GMT+'):
-            display_timezone = 'GMT' + display_timezone[4:].replace('+', '-')
-        elif display_timezone.startswith('GMT-'):
-            display_timezone = 'GMT' + display_timezone[4:].replace('-', '+')
+        if display_timezone.startswith('GMT'):
+            # Добавляем '+' если его нет и это положительное смещение
+            offset = display_timezone[3:]  # получаем часть после 'GMT'
+            if offset and not offset.startswith('+') and not offset.startswith('-'):
+                display_timezone = f"GMT+{offset}"
         
         text = f"⚙️ Настройки\n\n🌍 Часовой пояс: {display_timezone}"
         keyboard = types.InlineKeyboardMarkup(inline_keyboard=[

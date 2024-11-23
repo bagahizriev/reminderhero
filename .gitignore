@@ -9,16 +9,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Database
-*.db
-reminders.db
-
-# Logs
-*.log
-
-# Audio files
-*.ogg
-*.wav
+# Instance specific files
+instance/
+!instance/.gitkeep
 
 # IDE settings
 .vscode/
