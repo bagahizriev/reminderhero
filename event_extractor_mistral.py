@@ -20,8 +20,15 @@ class EventExtractorMistral:
     def __init__(self):
         self.api_key = MISTRAL_API_KEY
         self.api_url = "https://api.mistral.ai/v1/chat/completions"
-        self.model = "mistral-small-latest"
-        logger.info(f"Инициализирован EventExtractorMistral с моделью {self.model}")
+        self.model = "mistral-medium-latest"
+        logger.info(f"""
+{'='*50}
+Инициализация EventExtractorMistral:
+- Модель: {self.model}
+- API URL: {self.api_url}
+- Описание: Средняя модель Mistral AI (баланс между скоростью и качеством)
+{'='*50}
+""")
         
     async def extract_event_data(self, text: str, user_timezone: str = 'UTC') -> dict:
         logger.info(f"\n{'='*50}\nНовый запрос на обработку текста")
