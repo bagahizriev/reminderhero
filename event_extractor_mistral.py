@@ -24,13 +24,18 @@ class EventExtractorMistral:
     def __init__(self):
         self.api_key = MISTRAL_API_KEY
         self.api_url = "https://api.mistral.ai/v1/chat/completions"
-        self.model = "mistral-medium-latest"
+        self.model = "mistral-large-latest"
         logger.info(f"""
 {'='*50}
 Инициализация EventExtractorMistral:
 - Модель: {self.model}
 - API URL: {self.api_url}
-- Описание: Средняя модель Mistral AI (баланс между скоростью и качеством)
+- Описание: Самая мощная модель Mistral AI
+- Преимущества:
+  * Лучшее понимание контекста
+  * Более точная обработка дат и времени
+  * Улучшенное извлечение сути события
+  * Поддержка сложных языковых конструкций
 {'='*50}
 """)
         
@@ -125,6 +130,10 @@ class EventExtractorMistral:
             # Извлекаем JSON из ответа модели
             content = result["choices"][0]["message"]["content"]
             logger.info(f"Извлеченный контент: {content}")
+            
+            # Очищаем контент от markdown-разметки
+            content = content.replace("```json", "").replace("```", "").strip()
+            logger.info(f"Очищенный контент: {content}")
             
             event_data = json.loads(content)
             logger.info(f"Распарсенные данные события: {event_data}")
