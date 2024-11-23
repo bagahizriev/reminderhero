@@ -30,6 +30,10 @@ class ReminderBot:
         self.event_extractor = EventExtractorMistral()
         self.notification_manager = NotificationManager(TELEGRAM_TOKEN, self.db)
         self.register_handlers()
+        
+        # Создаем директорию для голосовых сообщений, если её нет
+        self.voice_dir = "voice_messages"
+        os.makedirs(self.voice_dir, exist_ok=True)
 
     def register_handlers(self):
         # Бзовые команды
@@ -215,7 +219,7 @@ class ReminderBot:
                 callback_data=f"delete_{reminder_data['display_id']}"
             )])
         
-        # Добавляем кнопку "Сохранить" внизу
+        # Добавляем кнопку "Сохранит��" внизу
         buttons.append([types.InlineKeyboardButton(
             text="✅ Сохранить",
             callback_data="save_deletions"
@@ -412,7 +416,7 @@ class ReminderBot:
             timezone_name = f"Etc/GMT{'-' if offset > 0 else '+'}{abs(offset)}"
             self.db.set_user_timezone(message.from_user.id, timezone_name)
             
-            # Отправляем новое сообщение с обновленными настройка��и
+            # Отправляем новое сообщение с обновленными настройкаи
             text = f"⚙️ Настройки\n\n🌍 Часовой пояс: {timezone_str}"
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
                 [types.InlineKeyboardButton(
@@ -454,21 +458,36 @@ class ReminderBot:
 
     async def handle_voice(self, message: types.Message):
         try:
+            # Создаем уникальные имена файлов с user_id и timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            user_id = message.from_user.id
+            base_filename = f"{user_id}_{timestamp}"
+            
+            voice_ogg = os.path.join(self.voice_dir, f"{base_filename}.ogg")
+            voice_wav = os.path.join(self.voice_dir, f"{base_filename}.wav")
+            
             file = await self.bot.get_file(message.voice.file_id)
             file_path = file.file_path
-            voice_ogg = "voice.ogg"
-            voice_wav = "voice.wav"
             
             # Скачиваем файл
             await self.bot.download_file(file_path, voice_ogg)
             
-            # Конвертируем и распозам
+            # Конвертируем и распознаем
             self.speech_recognizer.convert_ogg_to_wav(voice_ogg, voice_wav)
             recognized_text = self.speech_recognizer.transcribe(voice_wav)
             
             # Получаем данные о событии
             user_timezone = self.db.get_user_timezone(message.from_user.id)
             event_data = await self.event_extractor.extract_event_data(recognized_text, user_timezone)
+            
+            # Сохраняем информацию о голосовом сообщении в базу данных
+            self.db.save_voice_message(
+                user_id=user_id,
+                ogg_path=voice_ogg,
+                wav_path=voice_wav,
+                recognized_text=recognized_text,
+                timestamp=timestamp
+            )
             
             # Сначала сохраняем напоминание и получаем его ID
             reminder_id = self.db.save_reminder(
@@ -488,7 +507,7 @@ class ReminderBot:
             # Отправляем подтверждение
             formatted_datetime = self.format_datetime(event_data['datetime'], user_timezone)
             text = (
-                f"✅ Нпоминание создано!\n\n"
+                f"✅ Напоминание создано!\n\n"
                 f"Я распознал: {recognized_text}\n\n"
                 f"Событие: {event_data['description']}\n"
                 f"Дата и время: {formatted_datetime}"
@@ -505,8 +524,7 @@ class ReminderBot:
             
         except Exception as e:
             await message.answer(f"❌ Произошла ошибка: {str(e)}")
-        finally:
-            # Удаляем временные файлы
+            # Удаляем файлы в случае ошибки
             for file in [voice_ogg, voice_wav]:
                 if os.path.exists(file):
                     os.remove(file)

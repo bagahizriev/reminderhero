@@ -4,6 +4,10 @@ import pytz
 import requests
 from config import MISTRAL_API_KEY
 import logging
+import os
+
+# Создаем директорию для логов, если её нет
+os.makedirs('logs', exist_ok=True)
 
 # Настраиваем логирование
 logging.basicConfig(

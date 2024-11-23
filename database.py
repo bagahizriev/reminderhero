@@ -38,6 +38,17 @@ class Database:
                     FOREIGN KEY (reminder_id) REFERENCES reminders (id)
                 )
             """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS voice_messages (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    ogg_path TEXT NOT NULL,
+                    wav_path TEXT NOT NULL,
+                    recognized_text TEXT NOT NULL,
+                    timestamp TEXT NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
             conn.commit()
     
     def save_reminder(self, user_id: int, description: str, event_datetime: str):
@@ -298,3 +309,14 @@ class Database:
                 print(f"❌ Ошибка при удалении напоминания: {str(e)}")
                 conn.rollback()
                 raise
+    
+    def save_voice_message(self, user_id: int, ogg_path: str, wav_path: str, 
+                          recognized_text: str, timestamp: str):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO voice_messages 
+                (user_id, ogg_path, wav_path, recognized_text, timestamp)
+                VALUES (?, ?, ?, ?, ?)
+            """, (user_id, ogg_path, wav_path, recognized_text, timestamp))
+            conn.commit()

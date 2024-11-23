@@ -26,3 +26,7 @@ reminders.db
 
 # System files
 .DS_Store
+
+# Voice messages
+voice_messages/
+!voice_messages/.gitkeep
